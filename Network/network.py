@@ -2,12 +2,9 @@ import openpnm as op
 import random
 import numpy as np
 import scipy as sp
-from openpnm.utils import PrintableDict, logging, Workspace
-ws = Workspace()
-logger = logging.getLogger(__name__)
 
 #------------------------------------------------ Functions --------------------------------------
-def Merge_pores(network, pores, Nei,Cordinate, labels=['merged']):
+def Merge_pores(network, pores, Neighbor,Cordinate, trimradius, labels=['merged']):
     # Assert that `pores` is list of lists
     try:
         len(pores[0])
@@ -16,7 +13,7 @@ def Merge_pores(network, pores, Nei,Cordinate, labels=['merged']):
     N = len(pores)
     NBs, XYZs = [], []
     for Ps in pores:
-        NBs.append(Nei)
+        NBs.append(Neighbor)
         XYZs.append(Cordinate)
     op.topotools.extend(network, pore_coords=XYZs, labels=labels)
     Pnew = network.Ps[-N::]
@@ -34,8 +31,7 @@ def Merge_pores(network, pores, Nei,Cordinate, labels=['merged']):
     op.topotools.connect_pores(network, pores2=sp.split(Pnew, N), pores1=NBs, labels=labels)
     # Trim merged pores from the network
     op.topotools.trim(network=network, pores=sp.concatenate(pores))
-    
-    Ps = pn.find_nearby_pores(pores=network.Ps[-len(pores)::], r=PtoP, flatten=True)
+    Ps = network.find_nearby_pores(pores=network.Ps[-len(pores)::], r=trimradius, flatten=True)
     op.topotools.trim(network=network, pores=Ps)
 def MacroProsity(prosity):
     Nnp=int((1-prosity)*Nni)
@@ -49,7 +45,7 @@ def MacroProsity(prosity):
         if len(pores)>0:
             neighbor=pn.find_neighbor_pores(pores=pores, mode='union', flatten=True, include_input=False)
             cord=pn['pore.coords'][neighbor].mean(axis=0)
-            Merge_pores(network=pn, pores=pores, Nei=neighbor,Cordinate=cord, labels=['merged'])
+            Merge_pores(network=pn, pores=pores, Neighbor=neighbor,Cordinate=cord, trimradius=PtoP , labels=['merged'])
 #            print('************ ',1- len(pn.pores(labels=['merged'], mode='not'))/Nni)
             D=(1- len(pn.pores(labels=['merged'], mode='not'))/Nni)/prosity*50
             print('[','='*int(D), '>','.'*(50-int(D)),']')
