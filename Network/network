@@ -53,6 +53,10 @@ def MacroProsity(prosity):
 #            print('************ ',1- len(pn.pores(labels=['merged'], mode='not'))/Nni)
             D=(1- len(pn.pores(labels=['merged'], mode='not'))/Nni)/prosity*50
             print('[','='*int(D), '>','.'*(50-int(D)),']')
+    # Deleting Pores which placed very close (less than initial pore to pore distance of the grid) to merged porse         
+    op.topotools.trim(network=pn, pores=pn.find_nearby_pores(pores=pn.pores(labels=['merged']), r=PtoP, flatten=True))
+    # Deleting pores with just one throat
+    op.topotools.trim(network=pn, pores=[sp.where(pn.num_neighbors(pn.pores()) == 1)])
 #------------------------------------------------ contorol parameters --------------------------------------
 dp=40e-6                   #particle diameter
 PtoP=10e-8                 #pore to pore espacing   My idea  =dp/Numberofpores
@@ -78,7 +82,4 @@ op.topotools.trim(network=pn, pores=Pss)
 Nni=pn.Np
 ##------------------------------------------------ Hierarchical pn generation ------------------------------
 MacroProsity(prosity=phi)
-# Deleting Pores which placed very close (less than initial pore to pore distance of the grid) to merged porse         
-op.topotools.trim(network=pn, pores=pn.find_nearby_pores(pores=pn.pores(labels=['merged']), r=PtoP, flatten=True))
-# Deleting pores with just one throat
-op.topotools.trim(network=pn, pores=[sp.where(pn.num_neighbors(pn.pores()) == 1)])
+
